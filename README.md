@@ -1,68 +1,158 @@
-# CodeIgniter 4 Application Starter
+# NeoCPPD — Wiki simplificada
 
-## What is CodeIgniter?
+Sistema de gerenciamento para a Comissão Permanente de Pessoal Docente (CPPD) do IFSULDEMINAS. Reúne um portal público e código para cadastros administrativos, gestão de servidores e acompanhamento de avaliações e progressões.
 
-CodeIgniter is a PHP full-stack web framework that is light, fast, flexible and secure.
-More information can be found at the [official site](https://codeigniter.com).
+O repositório combina uma base CodeIgniter 4 com controladores legados de CodeIgniter 3. A presença de um módulo no código não garante que ele esteja funcionando na versão atual.
 
-This repository holds a composer-installable app starter.
-It has been built from the
-[development repository](https://github.com/codeigniter4/CodeIgniter4).
+## Navegação
 
-More information about the plans for version 4 can be found in [CodeIgniter 4](https://forum.codeigniter.com/forumdisplay.php?fid=28) on the forums.
+- [Conhecer os módulos](#conhecer-os-módulos)
+- [Encontrar os arquivos](#encontrar-os-arquivos)
+- [Preparar o ambiente local](#preparar-o-ambiente-local)
+- [Entender o acesso](#entender-o-acesso)
+- [Verificar e resolver problemas](#verificar-e-resolver-problemas)
 
-You can read the [user guide](https://codeigniter.com/user_guide/)
-corresponding to the latest version of the framework.
+## Conhecer os módulos
 
-## Installation & updates
+| Área | Conteúdo encontrado | Código principal |
+| --- | --- | --- |
+| Portal público | Informações da CPPD, documentos, tabelas, progressão, afastamento, normativa e RSC | `app/Controllers/Home.php`, `app/Views/site/` |
+| Autenticação | Login com e-mail e senha ou conta Google; encerramento da sessão | `app/Controllers/Login.php` |
+| Administração | Painel, campi, cursos, configurações e vínculo entre cursos e campi | `app/Controllers/Restrito/administracao/` |
+| Recursos humanos | Servidores, setores, carreira, classes, níveis e titulações | `app/Controllers/Restrito/rh/` |
+| Avaliação | Requerimentos, processos, progressões, critérios, pontos e avaliações docente, discente e da chefia | `app/Controllers/Restrito/avaliacao/` |
+| Controle de acesso | Usuários, papéis, privilégios, menus e cadastro de controladores | `app/Controllers/Restrito/uac/` |
 
-`composer create-project codeigniter4/appstarter` then `composer update` whenever
-there is a new release of the framework.
+Campi e Setor são exemplos de controladores com estrutura CodeIgniter 4. Diversos outros arquivos, especialmente os de avaliação, ainda usam `CI_Controller`, `$this->load` e APIs do CodeIgniter 3.
 
-When updating, check the release notes to see if there are any changes you might need to apply
-to your `app` folder. The affected files can be copied or merged from
-`vendor/codeigniter4/framework/app`.
+## Encontrar os arquivos
 
-## Setup
+```text
+app/
+├── Config/        # Rotas, filtros, banco, sessão e configurações
+├── Controllers/   # Portal, login e módulos restritos
+├── Database/      # Migrations e seeds da aplicação ainda sem implementação
+├── Filters/       # Verificação de sessão da área restrita
+├── Language/      # Traduções, incluindo pt-br
+├── Libraries/     # Grocery CRUD e montagem dos menus
+├── Models/        # Consultas de usuários, menus e suporte ao CRUD
+└── Views/         # Páginas, layout administrativo e telas de erro
+public/            # Entrada web e arquivos estáticos
+tests/             # Testes de exemplo do starter
+writable/          # Arquivos gerados em execução
+composer.json      # Dependências PHP e comando de testes
+composer.lock      # Versões fixadas das dependências
+spark              # Interface de linha de comando do CodeIgniter
+```
 
-Copy `env` to `.env` and tailor for your app, specifically the baseURL
-and any database settings.
+Os controllers recebem as requisições, os models consultam o banco e as views montam as páginas. O Grocery CRUD gera telas de cadastro; `app/Views/crud/index.php` exibe seu resultado dentro de `app/Views/template/admin/layout.php`.
 
-## Important Change with index.php
+Há templates e recursos com nomes `old`, além de cópias e exemplos. Confira as referências antes de usar esses arquivos como base para mudanças.
 
-`index.php` is no longer in the root of the project! It has been moved inside the *public* folder,
-for better security and separation of components.
+## Preparar o ambiente local
 
-This means that you should configure your web server to "point" to your project's *public* folder, and
-not to the project root. A better practice would be to configure a virtual host to point there. A poor practice would be to point your web server to the project root and expect to enter *public/...*, as the rest of your logic and the
-framework are exposed.
+### Requisitos e dependências
 
-**Please** read the user guide for a better explanation of how CI4 works!
+- PHP compatível com `^8.1`, conforme `composer.json`, com extensões `intl`, `mbstring` e suporte a MySQLi/mysqlnd.
+- Composer para instalar as dependências PHP.
+- MySQL e acesso ao esquema e aos dados iniciais da aplicação.
+- Credenciais OAuth do Google para utilizar esse tipo de login.
 
-## Repository Management
+O `composer.lock` fixa CodeIgniter 4.5.5. O projeto também declara traduções do CodeIgniter, Google API Client e PHPUnit 10. O Grocery CRUD está incluído no próprio código, e o painel utiliza recursos AdminLTE.
 
-We use GitHub issues, in our main repository, to track **BUGS** and to track approved **DEVELOPMENT** work packages.
-We use our [forum](http://forum.codeigniter.com) to provide SUPPORT and to discuss
-FEATURE REQUESTS.
+O `package.json` encontrado declara a ferramenta Codex; não define comandos de compilação do frontend.
 
-This repository is a "distribution" one, built by our release preparation script.
-Problems with it can be raised on our forum, or as issues in the main repository.
+### 1. Instalar as dependências PHP
 
-## Server Requirements
+Na raiz do repositório:
 
-PHP version 8.1 or higher is required, with the following extensions installed:
+```bash
+composer install
+```
 
-- [intl](http://php.net/manual/en/intl.requirements.php)
-- [mbstring](http://php.net/manual/en/mbstring.installation.php)
+### 2. Configurar o ambiente
 
-> [!WARNING]
-> - The end of life date for PHP 7.4 was November 28, 2022.
-> - The end of life date for PHP 8.0 was November 26, 2023.
-> - If you are still using PHP 7.4 or 8.0, you should upgrade immediately.
-> - The end of life date for PHP 8.1 will be December 31, 2025.
+Crie ou ajuste o arquivo `.env` na raiz, preservando configurações locais existentes. Exemplo para desenvolvimento:
 
-Additionally, make sure that the following extensions are enabled in your PHP:
+```dotenv
+CI_ENVIRONMENT = development
+app.baseURL = 'http://localhost:8080/'
 
-- json (enabled by default - don't turn it off)
-- [mysqlnd](http://php.net/manual/en/mysqlnd.install.php) if you plan to use MySQL
-- [libcurl](http://php.net/manual/en/curl.requirements.php) if you plan to use the HTTP\CURLRequest library
+database.default.hostname = localhost
+database.default.database = neocppd
+database.default.username = usuario_local
+database.default.password = 'substitua-pela-senha-local'
+database.default.DBDriver = MySQLi
+database.default.port = 3306
+
+ClientId = 'seu-client-id-google'
+ClientSecret = 'seu-client-secret-google'
+```
+
+Não publique o `.env` com credenciais reais. Os nomes `ClientId` e `ClientSecret` são os lidos pelo controller `Login`.
+
+### 3. Obter o banco da aplicação
+
+Não foi encontrado dump SQL nem migrations/seeds que criem as tabelas da aplicação. Solicite o esquema e os dados iniciais ao responsável pelo projeto; executar migrations sozinho não prepara esse banco.
+
+As consultas dependem, entre outras, das tabelas `usuario`, `servidor`, `papel`, `papel_usuario`, `menu`, `controller` e `privilegio`. O cadastro automático de usuário também consulta `laboratorio` e atribui papéis com IDs fixos 2 e 3. Esses registros precisam corresponder às regras esperadas pelo código.
+
+### 4. Iniciar o servidor
+
+```bash
+php spark serve
+```
+
+Acesse `http://localhost:8080/`. Para outro servidor web, configure a raiz pública em `public/`. Garanta permissão de escrita em `writable/`.
+
+Esses passos descrevem a preparação necessária; o funcionamento completo depende do banco e da adaptação dos módulos legados.
+
+## Entender o acesso
+
+As configurações de `app/Config/Routes.php` definem `Home::site` como entrada padrão e habilitam roteamento automático. Exemplos de caminhos derivados dos controllers:
+
+| Caminho | Finalidade |
+| --- | --- |
+| `/` | Portal público |
+| `/home/documentos` | Documentos |
+| `/home/tabelas` | Tabelas |
+| `/login/site` | Tela de login |
+| `/login/google` | Retorno do login Google |
+| `/login/verificar` | Processamento do login por e-mail e senha |
+| `/login/logoff` | Encerramento da sessão |
+| `/restrito/administracao/dashboard/site` | Método de exibição do painel |
+| `/restrito/administracao/campi` | Cadastro de campi |
+| `/restrito/rh/setor` | Cadastro de setores |
+
+As rotas explícitas `/pessoal`, `/crud/(:any)` e `/outra` apontam para controllers de exemplos.
+
+### Login e sessão
+
+O login por senha procura o usuário pelo e-mail do servidor e valida o hash com `password_verify`. No login Google, o e-mail precisa corresponder a um servidor já cadastrado; o sistema pode então criar seu usuário e associar papéis.
+
+Para o Google, configure no cliente OAuth a URI de retorno correspondente à URL base, por exemplo `http://localhost:8080/login/google`.
+
+Após autenticar, `Login` grava os dados em `session('user')`. O filtro `webauth`, aplicado a `restrito/*`, exige a existência dessa chave. Os menus são consultados conforme os papéis e privilégios no banco; essa montagem do menu, por si só, não comprova autorização de cada operação.
+
+## Verificar e resolver problemas
+
+Após instalar as dependências, o comando declarado para testes é:
+
+```bash
+composer test
+```
+
+Os testes encontrados são exemplos do starter para saúde da aplicação, banco e sessão; não demonstram cobertura dos fluxos de negócio da CPPD. A configuração fica em `phpunit.xml.dist`, com instruções adicionais em `tests/README.md`.
+
+| Sintoma | O que conferir |
+| --- | --- |
+| Dependências ou framework não encontrados | Execute `composer install` e confira a instalação de PHP e suas extensões. |
+| Erro de conexão ou tabela inexistente | Revise o `.env` e obtenha o banco da aplicação. |
+| Login Google retorna ao formulário sem liberar acesso | Confira as credenciais OAuth, a URI de retorno e o cadastro do servidor pelo e-mail. |
+| Falha após login ao abrir o painel | O login redireciona para `/restrito/administracao/dashboard`, mas `Dashboard` define `site()` e não `index()`; esse alinhamento precisa ser revisado. |
+| Erro envolvendo `CI_Controller`, `$this->load` ou `Grocery_CRUD` | O módulo utiliza APIs legadas e precisa de adaptação para CodeIgniter 4. |
+| Foto do usuário não é salva | Confira o caminho relativo `assets/uploads/user/` usado por `UsuarioModel` e suas permissões no ambiente de execução. |
+
+O arquivo `AuthController.php` contém outro fluxo de autenticação, mas referencia `UserModel` e uma view `login` que não foram encontrados. O fluxo que utiliza o model existente `UsuarioModel` está em `Login.php`.
+
+Documentação baseada na leitura estática do repositório. A execução da aplicação e dos testes ainda precisa ser validada em um ambiente com PHP, dependências e banco configurados.
